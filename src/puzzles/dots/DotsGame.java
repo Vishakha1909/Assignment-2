@@ -5,16 +5,13 @@ import game.core.Game;
 import game.core.Renderer;
 
 /**
- * Dots & Boxes (no dot-ID input).
- * Supported inputs during play:
- *   • Box + side:   r c side     (side -> T,B,L,R or top/bottom/left/right) recommended
- *   • Legacy:       H r c   or   V r c
+ * Dots & Boxes (strict input: only "H r c" or "V r c").
  *
- * Commands:
- *   • avail [options]   → list unclaimed edges (see showRules for variants)
- *   • edges             → list claimed edges
- *   • rules             → show rules
- *   • q                 → end round
+ * Commands during play:
+ *   • avail [all|critical|N] [row k|col k]  → list unclaimed edges
+ *   • edges                                 → list claimed edges
+ *   • rules                                 → show rules/help
+ *   • q                                     → end round
  */
 public final class DotsGame implements Game {
     private final ConsoleIO io;
@@ -49,7 +46,6 @@ public final class DotsGame implements Game {
     // -------------------- Round --------------------
 
     private void playOnce() {
-        // Ask size & players at start
         int rows = askInt("Boxes rows (>=1) [3]: ", 3, 1, 50);
         int cols = askInt("Boxes cols (>=1) [3]: ", 3, 1, 50);
         io.print("Player 1 name [Player1]: ");
@@ -60,10 +56,13 @@ public final class DotsGame implements Game {
 
         DotsState state = new DotsState(rows, cols, p1, p2);
 
-        io.println("\nINPUT:");
-        io.println("- Easiest:  r c side  (side of the box -> T,B,L,R or top/bottom/left/right)");
-        io.println("- Matrix wise:   H r c   or   V r c");
-        io.println("- Commands: avail | edges | rules | q");
+        io.println("");
+        io.println("INPUT (strict):");
+        io.println("  H r c   → horizontal edge at dot-row r, between cols c and c+1");
+        io.println("  V r c   → vertical edge at dot-col c, between rows r and r+1");
+        io.println("Ranges:  H r∈[0.." + rows + "], c∈[0.." + (cols-1) + "]   |   V r∈[0.." + (rows-1) + "], c∈[0.." + cols + "]");
+        io.println("Commands: avail | edges | rules | q");
+        io.println("");
 
         while (true) {
             io.println(renderer.render(state));
@@ -76,100 +75,79 @@ public final class DotsGame implements Game {
             }
 
             PlayerInfo cur = state.players[state.current];
-            io.print(cur.name + " (" + cur.mark + ") move [r c side | H r c | V r c | avail | edges | rules | q]: ");
+            io.print(cur.name + " (" + cur.mark + ") move [H r c | V r c | avail | edges | rules | q]: ");
             String line = io.nextLine().trim();
+            String lower = line.toLowerCase();
 
             // Commands
-            String lower = line.toLowerCase();
             if (lower.equals("q")) break;
             if (lower.equals("edges")) { listEdges(state); continue; }
             if (lower.equals("rules")) { showRules(); continue; }
             if (lower.equals("avail") || lower.startsWith("avail ")) { handleAvail(line, state); continue; }
 
-            // Parse move (no dot IDs)
-            ClaimEdge a = parseMoveNoDotIds(line, state);
+            // Strict H/V parsing only
+            ClaimEdge a = parseHV(line);
             if (a == null) {
-                io.println("Invalid input. Try:  r c side  (e.g., 0 1 R)  or  H r c / V r c.");
+                io.println("Invalid input. Use: H r c  or  V r c.  Example:  H 1 0");
                 continue;
             }
-
             if (!rules.isValid(state, a)) {
                 io.println("Invalid: " + rules.validationError(state, a));
                 continue;
             }
-
             state = rules.apply(state, a);
         }
     }
 
-    // -------------------- Parsing (no dot IDs) --------------------
+    // -------------------- Parsing (H/V only) --------------------
 
-    /** Accepts: "r c side" (T/B/L/R or words), or "H r c"/"V r c". */
-    private ClaimEdge parseMoveNoDotIds(String s, DotsState state) {
-        String[] t = s.split("\\s+");
-        // 1) Box + side: r c side
-        if (t.length == 3 && isInt(t[0]) && isInt(t[1])) {
-            Side side = Side.parse(t[2]);
-            if (side != null) {
-                int r = Integer.parseInt(t[0]);
-                int c = Integer.parseInt(t[1]);
-                return edgeFromBoxSide(r, c, side, state.rows, state.cols);
-            }
-        }
-        // 2) Legacy: H r c / V r c
-        if (t.length == 3 && (t[0].equalsIgnoreCase("H") || t[0].equalsIgnoreCase("V")) && isInt(t[1]) && isInt(t[2])) {
-            Orientation o = t[0].equalsIgnoreCase("H") ? Orientation.H : Orientation.V;
-            int r = Integer.parseInt(t[1]), c = Integer.parseInt(t[2]);
-            return new ClaimEdge(new EdgePos(o, r, c));
-        }
-        return null;
+    /** Accepts only "H r c" or "V r c". */
+    private ClaimEdge parseHV(String s) {
+        String[] t = s.trim().split("\\s+");
+        if (t.length != 3) return null;
+        String hv = t[0];
+        if (!hv.equalsIgnoreCase("H") && !hv.equalsIgnoreCase("V")) return null;
+        if (!isInt(t[1]) || !isInt(t[2])) return null;
+        int r = Integer.parseInt(t[1]);
+        int c = Integer.parseInt(t[2]);
+        Orientation o = hv.equalsIgnoreCase("H") ? Orientation.H : Orientation.V;
+        return new ClaimEdge(new EdgePos(o, r, c));
     }
 
-    /** Convert (box r,c) + side → edge (with bounds). */
-    private ClaimEdge edgeFromBoxSide(int r, int c, Side side, int boxRows, int boxCols) {
-        if (r < 0 || r >= boxRows || c < 0 || c >= boxCols) return null;
-        switch (side) {
-            case TOP:    return new ClaimEdge(new EdgePos(Orientation.H, r,     c));
-            case BOTTOM: return new ClaimEdge(new EdgePos(Orientation.H, r + 1, c));
-            case LEFT:   return new ClaimEdge(new EdgePos(Orientation.V, r,     c));
-            case RIGHT:  return new ClaimEdge(new EdgePos(Orientation.V, r,     c + 1));
-            default:     return null;
-        }
-    }
-
-    // -------------------- 'avail' listing (no dot-ID column) --------------------
+    // -------------------- 'avail' listing --------------------
 
     private void handleAvail(String line, DotsState state) {
-        // Parse options: avail [all|critical|N] [row K|col K]
-        String[] t = line.trim().split("\\s+");
-        boolean criticalOnly = false;
-        int limit = 20;  // default
-        String filterKind = null; int filterVal = 0;
+    // Parse options: avail [all|critical|N] [row K|col K]
+    String[] t = line.trim().split("\\s+");
+    boolean criticalOnly = false;
+    int limit = 20;  // default
+    String filterKind = null; int filterVal = 0;
 
-        for (int i = 1; i < t.length; i++) {
-            String x = t[i].toLowerCase();
-            if (x.equals("all")) { limit = Integer.MAX_VALUE; continue; }
-            if (x.equals("critical")) { criticalOnly = true; continue; }
-            if (x.equals("row") && i+1 < t.length && isInt(t[i+1])) { filterKind="row"; filterVal=Integer.parseInt(t[++i]); continue; }
-            if (x.equals("col") && i+1 < t.length && isInt(t[i+1])) { filterKind="col"; filterVal=Integer.parseInt(t[++i]); continue; }
-            if (isInt(x)) { limit = Integer.parseInt(x); continue; }
-        }
-
-        java.util.List<EdgeUtils.EdgeRow> rows = EdgeUtils.listAvailable(state, criticalOnly);
-        if (filterKind != null) rows = EdgeUtils.filterByRowCol(rows, filterKind, filterVal);
-
-        io.println("\nAvailable edges " + (criticalOnly ? "(critical only) " : "") +
-                "(showing " + Math.min(limit, rows.size()) + " of " + rows.size() + "):");
-        io.println("  Box+Side     | H/V      | Note");
-        io.println("  ------------ | -------- | ----");
-        int shown = 0;
-        for (EdgeUtils.EdgeRow e : rows) {
-            if (shown++ >= limit) break;
-            String note = e.critical ? "closes a box" : "";
-            io.println(String.format("  %-12s | %-8s | %s", e.boxSidePrimary, e.hv, note));
-        }
-        io.println("");
+    for (int i = 1; i < t.length; i++) {
+        String x = t[i].toLowerCase();
+        if (x.equals("all")) { limit = Integer.MAX_VALUE; continue; }
+        if (x.equals("critical")) { criticalOnly = true; continue; }
+        if (x.equals("row") && i+1 < t.length && isInt(t[i+1])) { filterKind="row"; filterVal=Integer.parseInt(t[++i]); continue; }
+        if (x.equals("col") && i+1 < t.length && isInt(t[i+1])) { filterKind="col"; filterVal=Integer.parseInt(t[++i]); continue; }
+        if (isInt(x)) { limit = Integer.parseInt(x); continue; }
     }
+
+    java.util.List<EdgeUtils.EdgeRow> rows = EdgeUtils.listAvailable(state, criticalOnly);
+    if (filterKind != null) rows = EdgeUtils.filterByRowCol(rows, filterKind, filterVal);
+
+    io.println("\nAvailable edges " + (criticalOnly ? "(critical only) " : "") +
+            "(showing " + Math.min(limit, rows.size()) + " of " + rows.size() + "):");
+    io.println("  H/V move  | Note");
+    io.println("  --------- | ----");
+    int shown = 0;
+    for (EdgeUtils.EdgeRow e : rows) {
+        if (shown++ >= limit) break;
+        String note = e.critical ? "closes a box" : "";
+        io.println(String.format("  %-9s | %s", e.hv, note));
+    }
+    io.println("");
+    }
+
 
     // -------------------- UI helpers --------------------
 
@@ -187,10 +165,10 @@ public final class DotsGame implements Game {
         io.println("- Players take turns claiming edges.");
         io.println("- Completing a box scores 1 and grants an extra turn.");
         io.println("- Game ends when all boxes are claimed. Highest score wins.");
-        io.println("\nInput options:");
-        io.println("  -> Box + side (recommended):  r c side   sides that are T,B,L,R or top/bottom/left/right");
-        io.println("  -> Matrix:                    H r c   or   V r c");
-        io.println("  -> Commands: 'avail' (list), 'edges' (claimed), 'rules' (help), 'q' (end round)");
+        io.println("\nInput (strict):");
+        io.println("  • H r c   or   V r c");
+        io.println("    Ranges:  H r∈[0..rows], c∈[0..cols-1]   |   V r∈[0..rows-1], c∈[0..cols]");
+        io.println("  • Commands: 'avail' (list), 'edges' (claimed), 'rules' (help), 'q' (end round)");
     }
 
     private void showHighScores() {
