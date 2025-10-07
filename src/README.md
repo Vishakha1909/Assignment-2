@@ -97,15 +97,11 @@ From the **`src`** directory:
 
 ``` bash
 # Compile all Java source files
-javac -d out app/*.java game/core/*.java puzzles/sliding/*.java puzzles/dots/*.java
+javac app/*.java game/core/*.java puzzles/sliding/*.java puzzles/dots/*.java
 
 # Run the program
-java -cp out app.Main
+java app.Main
 ```
-
-All code targets **Java 8.0** and must compile and run via the terminal
-(not IDE-only).
-
 ------------------------------------------------------------------------
 
 ## 💡 Example I/O
