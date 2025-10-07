@@ -71,7 +71,7 @@ java app.Main
   **SessionBest**        Tracks best scores (fewest moves) per session.
   ------------------------------------------------------------------------
 
-### 🔳 Dots & Boxes Module
+### Dots & Boxes Module
 
   ---------------------------------------------------------------------------
   File                      Description
