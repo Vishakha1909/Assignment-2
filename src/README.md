@@ -7,6 +7,21 @@
 
 ------------------------------------------------------------------------
 
+------------------------------------------------------------------------
+
+## ⚙️ Compile & Run Instructions
+
+From the **`src`** directory:
+
+``` bash
+# Compile all Java source files
+javac app/*.java game/core/*.java puzzles/sliding/*.java puzzles/dots/*.java
+
+# Run the program
+java app.Main
+```
+--------------------------------------------------------------------------------
+
 ## 📁 File Information
 
 ### 🎮 Core Framework
@@ -88,20 +103,6 @@
   **EdgeUtils**             Lists available edges and highlights those that
                             would complete a box.
   ---------------------------------------------------------------------------
-
-------------------------------------------------------------------------
-
-## ⚙️ Compile & Run Instructions
-
-From the **`src`** directory:
-
-``` bash
-# Compile all Java source files
-javac app/*.java game/core/*.java puzzles/sliding/*.java puzzles/dots/*.java
-
-# Run the program
-java app.Main
-```
 ------------------------------------------------------------------------
 
 ## 💡 Example I/O
