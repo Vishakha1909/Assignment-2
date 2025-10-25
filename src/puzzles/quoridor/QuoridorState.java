@@ -16,6 +16,20 @@ public final class QuoridorState {
     // Pawn positions (even-even doubled coords)
     public final Position p1, p2;
 
+    // Example fields:
+public int ar, ac, br, bc;
+public int wallsA, wallsB;
+private boolean[][] H;   // (rows-1) x cols
+private boolean[][] V;   // rows x (cols-1)
+
+public boolean hasH(int r, int c) {
+    return (H != null) && r >= 0 && r < H.length && c >= 0 && c < H[r].length && H[r][c];
+}
+public boolean hasV(int r, int c) {
+    return (V != null) && r >= 0 && r < V.length && c >= 0 && c < V[r].length && V[r][c];
+}
+
+
 
     // Remaining walls
     public final int p1Walls, p2Walls;

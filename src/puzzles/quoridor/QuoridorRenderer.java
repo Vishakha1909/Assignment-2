@@ -3,116 +3,141 @@ package puzzles.quoridor;
 import game.core.Renderer;
 
 /**
- * Multiline Quoridor renderer with aligned column headers.
- * - Chooses a cell width based on the largest column index (>=3).
- * - Centers header digits and cell contents in the same width.
- * - Horizontal wall segments match cell width for perfect alignment.
- * - Java 8 compatible (no String.repeat).
+ * Renderer that understands the doubled-grid model used by QuoridorState:
+ *   - Cells at even,even (2r,2c)
+ *   - Horizontal walls at odd,even
+ *   - Vertical walls at even,odd
+ *
+ * It prints a logical n x m board (NOT 2n x 2m), with ASCII fallback on Windows
+ * and optional ANSI colors.
+ *
+ * Expected state fields (as in your QuoridorState):
+ *   int n, m;                 // logical size (cells)
+ *   int rows, cols;           // doubled grid size (2n, 2m)
+ *   game.core.Position p1,p2; // doubled coords: (even,even)
+ *   boolean[][] h, v;         // wall segments on doubled grid
+ *   int wallsA, wallsB;       // counts to display
  */
 public final class QuoridorRenderer implements Renderer<QuoridorState> {
-    private final boolean asciiMode;
 
-    public QuoridorRenderer() { this(false); }
-    public QuoridorRenderer(boolean asciiMode) { this.asciiMode = asciiMode; }
+    // style
+    private final boolean useUnicode;
+    private final boolean useColor;
+    private final boolean tintWalls;
 
-    @Override
-    public String render(QuoridorState b) {
-        final String NL = System.lineSeparator();
+    // glyphs
+    private final String DOT, H, V, X, SP3;
 
-        // --- Layout parameters ---
-        final int maxCol = Math.max(0, b.m - 1);
-        final int digits = String.valueOf(maxCol).length(); // width needed for largest index
-        final int cellW  = Math.max(3, digits + 1);         // cell width (>=3 looks nicest)
-        final int gutterW = 1;                              // single-space gutter between cells
-        final int wallW   = 1;                              // one char for a vertical wall
+    // ANSI
+    private static final String RESET = "\u001B[0m";
+    private static final String BOLD  = "\u001B[1m";
+    private static final String DIM   = "\u001B[2m";
+    private static final String FG_CYAN    = "\u001B[36m";
+    private static final String FG_MAGENTA = "\u001B[35m";
+    private static final String FG_YELLOW  = "\u001B[33m";
+    private static final String FG_GRAY    = "\u001B[90m";
 
-        // Visual tokens sized to cellW
-        final String V = asciiMode ? "|" : "┃";             // vertical wall, single char
-        final String H = asciiMode ? repeat("-", cellW) : repeat("-", cellW); // horizontal segment
-        final String SP = repeat(" ", cellW);               // blank segment (under a cell)
-        final String DOT = "·";                             // empty cell marker
+    public QuoridorRenderer(boolean preferUnicode, boolean useColor, boolean tintWalls) {
+        boolean isWindows = System.getProperty("os.name","").toLowerCase().contains("win");
+        this.useUnicode = preferUnicode && !isWindows;       // ASCII on Windows (avoid ?)
+        this.useColor   = useColor;
+        this.tintWalls  = useColor && tintWalls;
 
-        StringBuilder sb = new StringBuilder();
-
-        // ── Column header (aligned) ───────────────────────────────────────────
-        sb.append(repeat(" ", 2 + 2)); // room for row label like "%2d" plus two spaces
-        for (int c = 0; c < b.m; c++) {
-            sb.append(center(String.valueOf(c), cellW));
-            if (c < b.m - 1) {
-                sb.append(repeat(" ", gutterW + wallW)); // space for gutter + wall slot
-            }
+        if (this.useUnicode) {
+            DOT = "•"; H = "───"; V = "│"; X = "┼"; SP3 = "   ";
+        } else {
+            DOT = "."; H = "---"; V = "|"; X = "+";  SP3 = "   ";
         }
-        sb.append(NL);
+    }
 
-        // ── Rows ─────────────────────────────────────────────────────────────
-        for (int r = 0; r < b.n; r++) {
-            final int er = QuoridorState.gr(r);
+    private String c(String s, String color) { return useColor ? color + s + RESET : s; }
+    private String bold(String s)            { return useColor ? BOLD + s + RESET : s; }
+    private String dim(String s)             { return useColor ? DIM + s + RESET  : s; }
 
-            // Cells + vertical walls
-            sb.append(String.format("%2d  ", r));
-            for (int c = 0; c < b.m; c++) {
-                final int ec = QuoridorState.gc(c);
+    @Override public String render(QuoridorState s) {
+        StringBuilder sb = new StringBuilder(4096);
+
+        // ===== HUD =====
+        int aR = s.p1.r / 2, aC = s.p1.c / 2; // logical cell coords
+        int bR = s.p2.r / 2, bC = s.p2.c / 2;
+
+        sb.append(bold("=== Quoridor ===")).append("\n");
+        sb.append(c("A@" + aR + "," + aC, FG_CYAN)).append("   ")
+          .append(c("B@" + bR + "," + bC, FG_MAGENTA)).append("   ")
+          .append("Walls ").append(c("A:" + s.wallsA, FG_CYAN)).append(" ")
+          .append(c("B:" + s.wallsB, FG_MAGENTA)).append("\n");
+        sb.append(c("Commands: ", FG_GRAY))
+          .append("move r c  |  wall H r c  |  wall V r c  |  size n m  |  q")
+          .append("\n\n");
+
+        // ===== column indices (logical) =====
+        sb.append("    ");
+        for (int c = 0; c < s.n /* columns */; c++) sb.append(String.format("%-4d", c));
+        sb.append("\n");
+
+        // ===== rows =====
+        for (int r = 0; r < s.n; r++) {
+            // row label + cells with vertical walls
+            sb.append(String.format("%-3d", r)).append(" ");
+            for (int c = 0; c < s.m; c++) {
+                int rr = 2 * r;     // doubled row of the cell
+                int cc = 2 * c;     // doubled col of the cell
 
                 String cell = DOT;
-                if (b.p1.r == er && b.p1.c == ec) cell = "1";
-                else if (b.p2.r == er && b.p2.c == ec) cell = "2";
+                if (rr == s.p1.r && cc == s.p1.c) cell = c("A", FG_CYAN);
+                else if (rr == s.p2.r && cc == s.p2.c) cell = c("B", FG_MAGENTA);
+                sb.append(cell);
 
-                sb.append(center(cell, cellW));
-
-                if (c < b.m - 1) {
-                    final int vcs = ec + 1; // (even, odd) column for vertical wall slot
-                    sb.append(repeat(" ", gutterW))
-                            .append(b.v[er][vcs] ? V : " ");
-                }
-            }
-            sb.append(NL);
-
-            // Horizontal walls between row r and r+1
-            if (r < b.n - 1) {
-                sb.append(repeat(" ", 2 + 2)); // under the row label
-                final int hrs = er + 1; // (odd, even)
-                for (int c = 0; c < b.m; c++) {
-                    final int ec = QuoridorState.gc(c);
-                    final boolean hLeft  = b.h[hrs][ec];
-                    final boolean hRight = (c < b.m - 1) && b.h[hrs][ec + 2];
-
-                    sb.append(hLeft ? H : SP);
-
-                    if (c < b.m - 1) {
-                        // between segments: gutter + junction/space
-                        sb.append(repeat(" ", gutterW))
-                                .append(hLeft && hRight ? (asciiMode ? "+" : "╋") : " ");
+                // vertical wall between (r,c) and (r,c+1) sits at (2r, 2c+1)
+                if (c < s.m - 1) {
+                    boolean w = in(s, 2*r, 2*c + 1) && s.v[2*r][2*c + 1];
+                    if (w) {
+                        String vv = V;
+                        if (tintWalls) vv = c(vv, DIM + FG_YELLOW);
+                        sb.append(" ").append(vv).append(" ");
+                    } else {
+                        sb.append(SP3);
                     }
                 }
-                sb.append(NL);
+            }
+            sb.append("\n");
+
+            // horizontal wall row between r and r+1 → (2r+1, 2c)
+            if (r < s.n - 1) {
+                sb.append("    ");
+                for (int c = 0; c < s.m; c++) {
+                    boolean w = in(s, 2*r + 1, 2*c) && s.h[2*r + 1][2*c];
+                    if (w) {
+                        String hh = H;
+                        if (tintWalls) hh = c(hh, DIM + FG_YELLOW);
+                        sb.append(hh);
+                    } else {
+                        sb.append(SP3);
+                    }
+                    if (c < s.m - 1) {
+                        // a tiny cross helper; tint if any adjacent wall around this join
+                        boolean adj = w
+                                   || (in(s, 2*r + 1, 2*(c + 1)) && s.h[2*r + 1][2*(c + 1)])
+                                   || (in(s, 2*r, 2*c + 1) && s.v[2*r][2*c + 1]);
+                        String xx = adj && tintWalls ? c(X, DIM + FG_YELLOW) : X;
+                        sb.append(xx);
+                    }
+                }
+                sb.append("\n");
             }
         }
 
-        // ── Footer ───────────────────────────────────────────────────────────
-        sb.append(NL)
-                .append("Turn: ")
-                .append(b.p1Turn ? (asciiMode ? "P1 (1)" : "P1 ⒈") : (asciiMode ? "P2 (2)" : "P2 ⒉"))
-                .append("   Walls: P1=").append(b.p1Walls).append(", P2=").append(b.p2Walls)
-                .append(NL)
-                .append("Commands: move r c | wall h r c | wall v r c | size n m | help | quit")
-                .append(NL);
+        // footer note
+        sb.append("\n")
+          .append(c("Note:", FG_GRAY))
+          .append(" walls use top-left indices in logical coords r,c -> [0..")
+          .append(Math.max(0, s.n - 2)).append("] for a ")
+          .append(s.n).append("×").append(s.m).append(" board.\n");
 
         return sb.toString();
     }
 
-    // --- Helpers (Java 8 friendly) ---
-    private static String repeat(String s, int n) {
-        StringBuilder b = new StringBuilder(s.length() * Math.max(0, n));
-        for (int i = 0; i < n; i++) b.append(s);
-        return b.toString();
-    }
-
-    private static String center(String text, int width) {
-        if (text == null) text = "";
-        int len = text.length();
-        if (len >= width) return text; // if it overflows, just return as-is
-        int left = (width - len) / 2;
-        int right = width - len - left;
-        return repeat(" ", left) + text + repeat(" ", right);
+    private static boolean in(QuoridorState s, int r, int c) {
+        return r >= 0 && r < s.rows && c >= 0 && c < s.cols;
     }
 }

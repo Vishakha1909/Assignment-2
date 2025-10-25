@@ -9,7 +9,7 @@ import game.core.Renderer;
 public final class QuoridorGame implements Game {
     private final ConsoleIO io;
     private final Rules<QuoridorState, QuoridorAction> rules = new QuoridorRules();
-    private final Renderer<QuoridorState> renderer = new QuoridorRenderer();
+    private final Renderer<QuoridorState> renderer = new QuoridorRenderer(true, true, true);
 
 
     private QuoridorState state;
