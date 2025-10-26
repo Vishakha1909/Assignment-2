@@ -47,7 +47,7 @@ public final class QuoridorGame implements Game {
 
 
     private void printHelp() {
-        io.println("Commands: size n m restart with board n×m (≥3) move r c move to logical cell (r,c) if legal wall h r c place horizontal wall at top-left (r,c) wall v r c place vertical wall at top-left (r,c) help | quit");
+        io.println("Commands: size n m restart with board n×m (>=3) move r c move to logical cell (r,c) if legal wall h r c place horizontal wall at top-left (r,c) wall v r c place vertical wall at top-left (r,c) help | quit");
     }
 
 
