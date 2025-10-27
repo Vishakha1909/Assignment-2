@@ -57,10 +57,10 @@ public final class DotsGame implements Game {
         DotsState state = new DotsState(rows, cols, p1, p2);
 
         io.println("");
-        io.println("INPUT (strict):");
-        io.println("  H r c   → horizontal edge at dot-row r, between cols c and c+1");
-        io.println("  V r c   → vertical edge at dot-col c, between rows r and r+1");
-        io.println("Ranges:  H r∈[0.." + rows + "], c∈[0.." + (cols-1) + "]   |   V r∈[0.." + (rows-1) + "], c∈[0.." + cols + "]");
+        io.println("INPUT :");
+        io.println("  H r c   -> horizontal edge at dot-row r, between cols c and c+1");
+        io.println("  V r c   -> vertical edge at dot-col c, between rows r and r+1");
+        io.println("Ranges:  H r -> [0.." + rows + "], c -> [0.." + (cols-1) + "]   |   V r -> [0.." + (rows-1) + "], c -> [0.." + cols + "]");
         io.println("Commands: avail | edges | rules | q");
         io.println("");
 
@@ -166,14 +166,14 @@ public final class DotsGame implements Game {
         io.println("- Completing a box scores 1 and grants an extra turn.");
         io.println("- Game ends when all boxes are claimed. Highest score wins.");
         io.println("\nInput (strict):");
-        io.println("  • H r c   or   V r c");
-        io.println("    Ranges:  H r∈[0..rows], c∈[0..cols-1]   |   V r∈[0..rows-1], c∈[0..cols]");
-        io.println("  • Commands: 'avail' (list), 'edges' (claimed), 'rules' (help), 'q' (end round)");
+        io.println("  -> H r c   or   V r c");
+        io.println("    Ranges:  H r -> [0..rows], c -> [0..cols-1]   |   V r -> [0..rows-1], c -> [0..cols]");
+        io.println("  -> Commands: 'avail' (list), 'edges' (claimed), 'rules' (help), 'q' (end round)");
     }
 
     private void showHighScores() {
         io.println("\nSession Scores:");
-        io.println("Wins A=" + stats.winsA + ", Wins B=" + stats.winsB + ", Ties=" + stats.ties);
+        io.println("Wins A =" + stats.winsA + ", Wins B =" + stats.winsB + ", Ties =" + stats.ties);
     }
 
     // -------------------- small utils --------------------

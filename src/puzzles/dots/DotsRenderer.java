@@ -11,8 +11,8 @@ public final class DotsRenderer implements Renderer<DotsState> {
     @Override public String render(DotsState s) {
         StringBuilder sb = new StringBuilder();
         // header: show valid ranges
-        sb.append("H r∈[0..").append(s.rows).append("] c∈[0..").append(s.cols-1)
-          .append("]   V r∈[0..").append(s.rows-1).append("] c∈[0..").append(s.cols).append("]\n");
+        sb.append("H r -> [0..").append(s.rows).append("] c -> [0..").append(s.cols-1)
+          .append("]   V r -> [0..").append(s.rows-1).append("] c-> [0..").append(s.cols).append("]\n");
 
         for (int r = 0; r < s.rows; r++) {
             // top edges with owner mark in the middle, e.g. -A-

@@ -1,4 +1,4 @@
-# Assignment 2 --- Sliding Puzzle & Dots and Boxes
+# Assignment 3 --- Quoridor
 
 ## 👤 Student Information
 
@@ -22,203 +22,236 @@ java app.Main
 ```
 --------------------------------------------------------------------------------
 
+## 🧩 Project Overview
+
+This project extends the existing **terminal-based game suite** to support a **third turn-based strategy game — Quoridor**, built on the same reusable object-oriented framework that powered *Sliding Puzzle* and *Dots & Boxes*.
+
+All three games share a unified **modular architecture**, ensuring a consistent user experience, efficient code reuse, and easy extensibility for future games.
+
+### ✨ Framework Highlights
+- **Scalable design:** any new turn-based grid game can be added with minimal setup.  
+- **Unified interfaces:** all games implement `Game`, `Rules`, `Renderer`, and `TurnAgent`.  
+- **Consistent UX:** identical menu flow — `Play / Rules / High Scores / Back` — for each game.  
+- **Terminal-friendly visuals:** box-drawn ASCII/Unicode boards with ANSI colors.  
+- **Player & stats management:** tracks moves, scores, and session summaries.  
+
+-----------------------------------------------------------------------------
+
+## 📁 Directory Structure
+
+```bash
+src/
+├── app/
+│   ├── Main.java
+│   └── ConsoleIO.java
+├── game/core/
+│   ├── Game.java
+│   ├── GameFactory.java
+│   ├── GameRegistry.java
+│   ├── Player.java
+│   ├── TurnAgent.java
+│   ├── Position.java
+│   ├── Tile.java
+│   └── Piece.java
+├── puzzles/
+│   ├── sliding/
+│   ├── dots/
+│   └── quoridor/
+
+```
+
 ## 📁 File Information
 
 ### 🎮 Core Framework
 
-  -----------------------------------------------------------------------
-  File                  Description
-  --------------------- -------------------------------------------------
-  **Main**              Entry point of the program. Registers both games
-                        and provides the main terminal menu (Play / Rules
-                        / High Scores / Back).
+| File                        | Description                                                                                                           |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Main**                    | Entry point of the suite. Registers all three games and provides the main menu (`Play / Rules / High Scores / Back`). |
+| **ConsoleIO**               | Handles all user I/O from the terminal.                                                                               |
+| **Game**                    | Interface for all playable games.                                                                                     |
+| **GameFactory**             | Factory interface used to create games dynamically.                                                                   |
+| **GameRegistry**            | Keeps track of registered games.                                                                                      |
+| **Position / Tile / Piece** | Fundamental grid elements shared across modules.                                                                      |
+| **TurnAgent / Player**      | Abstractions for human or AI-controlled turns.                                                                        |
 
-  **ConsoleIO**         Handles console input/output.
-
-  **Game**              Interface for all playable games.
-
-  **GameFactory**       Factory interface to create and configure games.
-
-  **GameRegistry**      Keeps track of available game factories.
-  -----------------------------------------------------------------------
 
 ### 🧩 Sliding Puzzle Module
 
-  ------------------------------------------------------------------------
-  File                   Description
-  ---------------------- -------------------------------------------------
-  **SlidingGame**        Game controller for the sliding puzzle ---
-                         handles moves, shuffling, and completion checks.
+| File                              | Description                                                |
+| --------------------------------- | ---------------------------------------------------------- |
+| **SlidingGame**                   | Main controller managing moves, shuffling, and win checks. |
+| **SlidingFactory**                | Builds the game with its rules and renderer.               |
+| **SlidingState**                  | Stores the board tiles and blank space position.           |
+| **SlidingRules**                  | Defines legal moves and solvability logic.                 |
+| **SlidingRenderer**               | Displays the puzzle grid in ASCII format.                  |
+| **GoalStrategy / StandardGoal**   | Defines the “solved” configuration.                        |
+| **Shuffler / RandomMoveShuffler** | Shuffles by legal blank moves to ensure solvability.       |
+| **SessionBest**                   | Tracks fewest moves per session for high scores.           |
 
-  **SlidingFactory**     Builds and wires the sliding puzzle with its
-                         rules, renderer, and state.
-
-  **SlidingState**       Stores current tile layout and blank position.
-
-  **SlidingRules**       Defines valid-move logic and solvability checks.
-
-  **SlidingRenderer**    Renders the puzzle grid in plain text.
-
-  **GoalStrategy /       Define what the solved configuration looks like.
-  StandardGoal**         
-
-  **SolvabilityPolicy /  Ensure the puzzle is solvable before play.
-  SolverUtils**          
-
-  **Shuffler /           Shuffle the board using random valid moves.
-  RandomMoveShuffler**   
-
-  **SessionBest**        Tracks best scores (fewest moves) per session.
-  ------------------------------------------------------------------------
 
 ### Dots & Boxes Module
 
-  ---------------------------------------------------------------------------
-  File                      Description
-  ------------------------- -------------------------------------------------
-  **DotsGame**              Main controller for Dots & Boxes. Handles turns,
-                            edge claiming, box completion, scoring, and
-                            per-session stats.
+| File                                         | Description                                            |
+| -------------------------------------------- | ------------------------------------------------------ |
+| **DotsGame**                                 | Controller for turns, edge claiming, and scoring.      |
+| **DotsAndBoxesFactory**                      | Factory for building the Dots & Boxes game.            |
+| **DotsState**                                | Stores box ownership and H/V edge claims.              |
+| **DotsRules**                                | Determines valid edges and box completion.             |
+| **DotsRenderer / DotsRendererAnsi**          | Renders the grid with colored edges and box owners.    |
+| **EdgePos / Orientation / Side / ClaimEdge** | Represent and validate edges.                          |
+| **BoxPiece**                                 | Represents a filled box with player ID.                |
+| **PlayerInfo / SessionStats**                | Store per-player stats and session summaries.          |
+| **EdgeUtils**                                | Lists all unclaimed edges and potential scoring moves. |
 
-  **DotsAndBoxesFactory**   Factory that builds a ready-to-play Dots & Boxes
-                            instance.
 
-  **DotsState**             Holds grid configuration, player data, and
-                            ownership arrays for H/V edges.
+### Quoridor Module
 
-  **DotsRules**             Validates moves and determines when a box is
-                            completed.
+| File                      | Description                                                                                                            |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **QuoridorGame**          | Game controller with menu, input loop, and score display.                                                              |
+| **QuoridorFactory**       | Registers and builds the Quoridor instance.                                                                            |
+| **QuoridorState**         | Represents the game board (pawns, walls, turns, and stats).                                                            |
+| **QuoridorRules**         | Handles all move legality (steps, jumps, diagonal side-steps) and wall placement validation using BFS for path safety. |
+| **QuoridorRenderer**      | Displays the board as a fully boxed grid (`+---+ / │ │`) with ANSI color highlights for walls and pawns.               |
+| **QuoridorAction**        | Encapsulates an action (`MOVE`, `WALL_H`, `WALL_V`).                                                                   |
+| **QuoridorHuman**         | Human input parser for move and wall commands.                                                                         |
+| **QuoridorStats**         | Tracks moves, walls, jumps, and win statistics.                                                                        |
+| **QuoridorRulesText**     | In-game rules description used in the “Rules” menu.                                                                    |
+| **PawnPiece / WallPiece** | Piece implementations for pawn and wall visualization.                                                                 |
 
-  **DotsRenderer /          Draws the board in ASCII or with ANSI colors to
-  DotsRendererAnsi**        differentiate players.
 
-  **EdgePos / Orientation / Represent edges and directions in the grid.
-  Side / ClaimEdge**        
-
-  **BoxPiece**              Represents a claimed box (with owning player).
-
-  **PlayerInfo /            Maintain per-player info and track win/loss/tie
-  SessionStats**            stats.
-
-  **EdgeUtils**             Lists available edges and highlights those that
-                            would complete a box.
-  ---------------------------------------------------------------------------
-------------------------------------------------------------------------
 
 ## 💡 Example I/O
 
 ### Game Selection
 
-    Select a game:
-    1) Sliding Puzzle
-    2) Dots & Boxes
-    3) Quit
-    Choice: 2
+```
+Select a game:
+1) Sliding Puzzle
+2) Dots and Boxes
+3) Quoridor
+4) Quit
+Choice:
+```
 
 ------------------------------------------------------------------------
 
-### Dots & Boxes Menu
+### Quoridor Menu
 
-    === Dots & Boxes ===
-    1) Play
-    2) Rules
-    3) High Scores
-    4) Back
-    Choice: 1
-    Boxes rows (>=1) [3]: 2
-    Boxes cols (>=1) [3]: 2
-    Player 1 name [Player1]: alice
-    Player 2 name [Player2]: bob
+```
+    === Quoridor ===
+1) Play
+2) Rules
+3) High Scores
+4) Back
+Choice: 1
+Enter board size (rows cols, default 9 9): 9 9
+Player 1 name [A]: Shy
+Player 2 name [B]: Ro
+```
 
 ------------------------------------------------------------------------
 
 ### Gameplay Example
 
-    INPUT (strict):
-      H r c   or   V r c
-      Commands: avail | edges | rules | q
+```
+    Commands:
+  move r c      — move pawn to target cell
+  wall H r c    — place horizontal wall
+  wall V r c    — place vertical wall
+  help | quit
 
-    Box coords: rows 0..1, cols 0..1
-    .   .   .
-             
-    .   .   .
-             
-    .   .   .
+P1@0,4   P2@8,4   Walls P1:10 P2:10
 
-------------------------------------------------------------------------
+      0   1   2   3   4   5   6   7   8
+    +---+---+---+---+---+---+---+---+---+
+  0 |   |   |   |   | S |   |   |   |   |
+    +---+---+---+---+---+---+---+---+---+
+  8 |   |   |   |   | R |   |   |   |   |
+    +---+---+---+---+---+---+---+---+---+
 
-### Sample Moves
-
-    bob (B) move [H r c | V r c | avail | edges | rules | q]: V 1 0
-
-    .---.   .
-    |        
-    .---.   .
-    |        
-    .   .   .
-
-    alice (A) move [H r c | V r c | avail | edges | rules | q]: V 0 1
-
-    .---.   .
-    |   |    
-    .---.   .
-    |        
-    .   .   .
+P1> wall H 2 3
+P2> move 7 4
+...
+🏆 Shy wins!
+```
 
 ------------------------------------------------------------------------
 
-### Checking Available Edges
+### Exmple stats
 
-    b (B) move [H r c | V r c | avail | edges | rules | q]: avail
+```
+    === Quoridor Stats ===
+Games played: 4
+Average moves: 39.2
+Average walls: 12.0
+Average jumps: 3.1
+Wins:
+  Shy - 2
+  Ro - 2
+```
+------------------------------------------------------------------------
 
-    Available edges (showing 5 of 12):
-      H/V move  | Note
-      --------- | ----
-      H 0 0     |
-      H 0 1     | closes a box
-      V 1 0     |
-      V 2 0     | closes a box
-      V 0 2     |
+## Example Commands
+
+| Command      | Description                                                         |
+| ------------ | ------------------------------------------------------------------- |
+| `move 4 4`   | Move pawn to (4,4) if reachable. Supports jumps and diagonal steps. |
+| `wall H 3 2` | Place a horizontal 2-segment wall under (3,2).                      |
+| `wall V 5 5` | Place a vertical 2-segment wall to the right of (5,5).              |
+| `help`       | Displays valid command usage.                                       |
+| `quit`       | Exits the game.                                                     |
 
 ------------------------------------------------------------------------
 
-### Winning Move
+### Design Principles
 
-    b (B) move [H r c | V r c | avail | edges | rules | q]: V 0 0
+```
+MVC-like layering: separation of model, view, and controller responsibilities.
 
-    .---.
-    |   |
-    .---.
+Immutability: all states are cloned before mutation for safety and undo potential.
 
-    Score: a=0, b=1
-    Winner: b
+Generics: consistent Rules<S, A> and Renderer<S> interfaces for all games.
 
-------------------------------------------------------------------------
+Reusability: shared use of ConsoleIO and GameRegistry.
 
-## 🧠 Design Documentation
+Player abstraction: uniform handling of names, turns, and score tracking.
+```
 
--   **Scalability:**\
-    The shared `Game`, `Rules`, `Renderer`, and `Factory` interfaces let
-    new games plug in easily.\
--   **Extendibility:**\
-    Both games reuse the same console framework and player/session
-    management.\
--   **Readability & Best Practices:**\
-    Clear file headers, method comments, and strict separation of game
-    logic, state, and view.\
--   **Usability:**\
-    Player menus, color-coded boards, rules menu, and high-score
-    tracking improve UX.\
--   **Concise Main:**\
-    `Main` only registers and launches games --- no internal game logic.
+----
 
-------------------------------------------------------------------------
+### Enhancements & Features
 
-## 🏆 Bonus Features
+```
+Full ANSI color and box-drawn grids.
 
--   ANSI-colored boxes and edges for player distinction.\
--   `avail` command lists unclaimed edges and marks those that would
-    close a box.\
--   Session statistics persist during runtime.\
--   Difficulty selector for Sliding Puzzle.\
--   Rules and high-score menus for both games.
+Jump + diagonal movement identical to official Quoridor rules.
+
+BFS validation for legal wall placements.
+
+Unified stats and high-score menus for all games.
+
+Difficulty selector for Sliding Puzzle.
+
+avail and edges commands for Dots & Boxes.
+```
+
+-----
+
+### Future Improvements
+
+```
+
+AI agents via TurnAgent.
+
+Undo / Replay for Quoridor.
+
+Persistent score saving (e.g., CSV).
+
+4-player Quoridor variant.
+
+Visual replay mode for completed matches.
+
+```
+
+----------------------------------------------
