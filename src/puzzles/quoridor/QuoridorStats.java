@@ -1,36 +1,58 @@
 package puzzles.quoridor;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-final class QuoridorStats {
-    private static final QuoridorStats INSTANCE = new QuoridorStats();
-    static QuoridorStats get() { return INSTANCE; }
+public final class QuoridorStats {
+    private static final QuoridorStats SINGLETON = new QuoridorStats();
+    public static QuoridorStats get() { return SINGLETON; }
 
-    private final AtomicInteger games = new AtomicInteger();
-    private final AtomicInteger winsA = new AtomicInteger();
-    private final AtomicInteger winsB = new AtomicInteger();
-    private final AtomicInteger totalMoves = new AtomicInteger();
-    private final AtomicInteger totalWalls = new AtomicInteger();
-    private volatile int bestFewestMoves = Integer.MAX_VALUE;
-    private volatile long totalDurationMs = 0L;
+    private int games = 0;
+    private long totalMs = 0;
+    private long totalMoves = 0;
+    private int totalWalls = 0;
+    private int totalJumps = 0;
 
-    void onGameStart() { games.incrementAndGet(); }
-    void onWallPlaced() { totalWalls.incrementAndGet(); }
-    void onGameEnd(boolean aWon, int moves, long durMs) {
-        (aWon ? winsA : winsB).incrementAndGet();
-        totalMoves.addAndGet(moves);
-        totalDurationMs += durMs;
-        if (moves < bestFewestMoves) bestFewestMoves = moves;
+    private final Map<String,Integer> wins = new LinkedHashMap<String,Integer>();
+
+    private QuoridorStats() {}
+
+    public synchronized void onGameEnd(
+            String name1, String name2, String winnerName,
+            int moveCount, int wallsP1, int wallsP2,
+            int jumps1, int jumps2, long elapsedMs
+    ) {
+        games++;
+        totalMs += elapsedMs;
+        totalMoves += moveCount;
+        totalWalls += (wallsP1 + wallsP2);
+        totalJumps += (jumps1 + jumps2);
+        wins.put(winnerName, wins.getOrDefault(winnerName, 0) + 1);
     }
-    String summary() {
-        int g = games.get(), a = winsA.get(), b = winsB.get();
-        double avgMoves = g > 0 ? (double) totalMoves.get()/g : 0;
-        double avgSecs  = g > 0 ? (totalDurationMs/1000.0)/g : 0;
-        String best = bestFewestMoves == Integer.MAX_VALUE ? "—" : String.valueOf(bestFewestMoves);
-        return "Games: " + g + "\nWins  : A=" + a + "  B=" + b +
-               "\nMoves : total=" + totalMoves.get() + ", avg/game=" + String.format("%.2f", avgMoves) +
-               "\nWalls : total=" + totalWalls.get() +
-               "\nBest  : fewest moves to win = " + best +
-               "\nTime  : avg duration = " + String.format("%.2fs", avgSecs);
+
+    public synchronized String summary() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n=== Quoridor Session Stats ===\n");
+        sb.append("Games: ").append(games).append("\n");
+        if (games > 0) {
+            sb.append("Avg moves/game: ").append(String.format("%.1f", (double)totalMoves / games)).append("\n");
+            sb.append("Avg walls/game: ").append(String.format("%.1f", (double)totalWalls / games)).append("\n");
+            sb.append("Avg jumps/game: ").append(String.format("%.1f", (double)totalJumps / games)).append("\n");
+            sb.append("Avg duration: ").append(String.format("%.1fs", totalMs / 1000.0 / games)).append("\n");
+        }
+        sb.append("Wins by player:\n");
+        for (Map.Entry<String,Integer> e : wins.entrySet()) {
+            sb.append("  ").append(e.getKey()).append(": ").append(e.getValue()).append("\n");
+        }
+        return sb.toString();
     }
+
+    public synchronized String quickLine() {
+    if (games == 0) return "No games played.";
+    return "Games: " + games +
+           " | Avg moves: " + String.format("%.1f", (double) totalMoves / games) +
+           " | Avg walls: " + String.format("%.1f", (double) totalWalls / games) +
+           " | Avg jumps: " + String.format("%.1f", (double) totalJumps / games);
+}
+
 }

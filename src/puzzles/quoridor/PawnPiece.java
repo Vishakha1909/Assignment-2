@@ -12,4 +12,3 @@ public final class PawnPiece implements Piece {
     @Override public int id() { return id; }
     @Override public String label() { return label; }
 }
-

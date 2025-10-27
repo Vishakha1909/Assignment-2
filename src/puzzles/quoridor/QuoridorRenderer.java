@@ -2,27 +2,16 @@ package puzzles.quoridor;
 
 import game.core.Renderer;
 
-/**
- * Boxed Quoridor renderer for the simple grid model:
- *  - cells: rows x cols
- *  - h[r][c] is the horizontal segment between (r,c) and (r+1,c)
- *  - v[r][c] is the vertical   segment between (r,c) and (r,c+1)
- *
- * Always draws a full lattice (+---+ / |   |). Placed walls overlay in bold yellow.
- * Pawns: A (cyan), B (magenta). ASCII fallback on Windows to avoid glyph issues.
- */
+/** Pretty boxed renderer with ANSI colors and ASCII fallback. */
 public final class QuoridorRenderer implements Renderer<QuoridorState> {
 
-    // style
     private final boolean useUnicode;
     private final boolean useColor;
     private final boolean tintWalls;
 
-    // glyphs
     private final String H, V, X;
     private static final String SP3 = "   ";
 
-    // ANSI
     private static final String RESET = "\u001B[0m";
     private static final String BOLD  = "\u001B[1m";
     private static final String DIM   = "\u001B[2m";
@@ -33,92 +22,88 @@ public final class QuoridorRenderer implements Renderer<QuoridorState> {
 
     public QuoridorRenderer(boolean preferUnicode, boolean useColor, boolean tintWalls) {
         boolean isWindows = System.getProperty("os.name","").toLowerCase().contains("win");
-        this.useUnicode = preferUnicode && !isWindows; // ASCII on Windows
+        this.useUnicode = preferUnicode && !isWindows;
         this.useColor   = useColor;
         this.tintWalls  = useColor && tintWalls;
-
-        if (this.useUnicode) { H = "───"; V = "│"; X = "┼"; }
-        else                 { H = "---"; V = "|"; X = "+"; }
+        if (this.useUnicode) { H="───"; V="│"; X="┼"; } else { H="---"; V="|"; X="+"; }
     }
 
     private String c(String s, String color) { return useColor ? color + s + RESET : s; }
     private String bold(String s)            { return useColor ? BOLD + s + RESET : s; }
     private String dim(String s)             { return useColor ? DIM + s + RESET  : s; }
 
+    private static String initialOf(String name, String fallback) {
+        if (name == null || name.trim().isEmpty()) return fallback;
+        return String.valueOf(Character.toUpperCase(name.trim().charAt(0)));
+    }
+
     @Override
     public String render(QuoridorState s) {
         StringBuilder sb = new StringBuilder(8192);
+        String i1 = initialOf(s.name1, "A");
+        String i2 = initialOf(s.name2, "B");
 
-        // HUD (logical coordinates)
-        sb.append(c("P1@" + s.p1.r + "," + s.p1.c, FG_CYAN)).append("   ")
-          .append(c("P2@" + s.p2.r + "," + s.p2.c, FG_MAGENTA)).append("   ")
-          .append("Walls ").append(c("P1:" + s.walls1, FG_CYAN)).append(" ")
-          .append(c("P2:" + s.walls2, FG_MAGENTA)).append("\n");
+        // HUD
+        sb.append(c(s.name1, FG_CYAN)).append(" @(").append(s.p1.r).append(",").append(s.p1.c).append(")")
+          .append("  Walls: ").append(s.walls1).append("    ");
+        sb.append(c(s.name2, FG_MAGENTA)).append(" @(").append(s.p2.r).append(",").append(s.p2.c).append(")")
+          .append("  Walls: ").append(s.walls2).append("\n");
+        sb.append(c("Move #", FG_GRAY)).append(s.moveCount).append("   ");
+        sb.append("Turn: ").append(s.turn==1? c(s.name1, FG_CYAN) : c(s.name2, FG_MAGENTA)).append("\n");
         sb.append(c("Commands: ", FG_GRAY))
-          .append("move r c  |  wall H r c  |  wall V r c  |  size n m  |  q\n\n");
+          .append("move r c  |  wall H r c  |  wall V r c  |  help | quit\n\n");
 
         // column indices
         sb.append("    ");
-        for (int cIdx = 0; cIdx < s.cols; cIdx++) sb.append(String.format("%-4d", cIdx));
+        for (int cIdx=0;cIdx<s.cols;cIdx++) sb.append(String.format("%-4d", cIdx));
         sb.append("\n");
 
         // top border
         sb.append("    ").append(border(s.cols)).append("\n");
 
-        for (int r = 0; r < s.rows; r++) {
+        for (int r=0;r<s.rows;r++) {
             // cells row
             sb.append(String.format("%-3d", r)).append(" ");
-            sb.append(dim(V)); // left border
-            for (int cIdx = 0; cIdx < s.cols; cIdx++) {
-                // pawn / empty
+            sb.append(dim(V));
+            for (int c=0;c<s.cols;c++) {
                 String cell = SP3;
-                if (s.p1.r == r && s.p1.c == cIdx)      cell = " " + c("A", FG_CYAN)    + " ";
-                else if (s.p2.r == r && s.p2.c == cIdx) cell = " " + c("B", FG_MAGENTA) + " ";
+                if (s.p1.r==r && s.p1.c==c)      cell = " " + c(i1, FG_CYAN)    + " ";
+                else if (s.p2.r==r && s.p2.c==c) cell = " " + c(i2, FG_MAGENTA) + " ";
                 sb.append(cell);
-
-                // interior vertical wall between (r,cIdx) and (r,cIdx+1)
-                if (cIdx < s.cols - 1) {
-                    boolean wall = s.v[r][cIdx];
+                if (c < s.cols-1) {
+                    boolean wall = s.v[r][c];
                     sb.append(wall ? c(bold(V), FG_YELLOW) : dim(V));
                 }
             }
             sb.append(dim(V)).append("\n");
 
-            // separator below row r (unless last row)
-            if (r < s.rows - 1) {
+            if (r < s.rows-1) {
                 sb.append("    ").append(separatorRow(s, r)).append("\n");
             }
         }
-
-        // >>> bottom border (fix): close the grid after the last row
+        // bottom border
         sb.append("    ").append(border(s.cols)).append("\n");
-
         return sb.toString();
     }
 
     private String border(int cols) {
         StringBuilder line = new StringBuilder();
         line.append(dim(X));
-        for (int c = 0; c < cols; c++) line.append(dim(H)).append(dim(X));
+        for (int c=0;c<cols;c++) line.append(dim(H)).append(dim(X));
         return line.toString();
     }
-
-    /** Separator between logical rows r and r+1. Overlays H walls; keeps V continuity through junctions. */
     private String separatorRow(QuoridorState s, int r) {
         StringBuilder line = new StringBuilder();
         line.append(dim(X));
-        for (int c = 0; c < s.cols; c++) {
+        for (int c=0;c<s.cols;c++) {
             boolean hSeg = s.h[r][c];
             line.append(hSeg ? c(bold(H), FG_YELLOW) : dim(H));
-
-            if (c < s.cols - 1) {
-                // Is there a vertical wall continuing through this junction?
+            if (c < s.cols-1) {
                 boolean vTop = s.v[r][c];
                 boolean vBot = s.v[r+1][c];
-                if (vTop && vBot) {
-                    line.append(c(bold(V), FG_YELLOW));   // continuous V wall
-                } else {
-                    boolean meets = hSeg || s.h[r][c+1] || vTop;
+                if (vTop && vBot) line.append(c(bold(V), FG_YELLOW));
+                else {
+                    boolean meets = hSeg || s.h[r][c+1] || vTop || vBot;
                     line.append(meets ? c(dim(X), FG_YELLOW) : dim(X));
                 }
             }
