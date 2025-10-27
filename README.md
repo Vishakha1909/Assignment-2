@@ -150,6 +150,7 @@ Player 2 name [B]: Ro
 
 ### Gameplay Example
 
+```
     Commands:
   move r c      — move pawn to target cell
   wall H r c    — place horizontal wall
@@ -160,43 +161,31 @@ P1@0,4   P2@8,4   Walls P1:10 P2:10
 
       0   1   2   3   4   5   6   7   8
     +---+---+---+---+---+---+---+---+---+
-  0 |   |   |   |   | A |   |   |   |   |
+  0 |   |   |   |   | S |   |   |   |   |
     +---+---+---+---+---+---+---+---+---+
-  8 |   |   |   |   | B |   |   |   |   |
+  8 |   |   |   |   | R |   |   |   |   |
     +---+---+---+---+---+---+---+---+---+
 
 P1> wall H 2 3
 P2> move 7 4
 ...
 🏆 Shy wins!
+```
 
 ------------------------------------------------------------------------
 
 ### Exmple stats
 
+```
     === Quoridor Stats ===
 Games played: 4
 Average moves: 39.2
 Average walls: 12.0
 Average jumps: 3.1
 Wins:
-  Shy — 2
-  Ro — 2
-
-
-------------------------------------------------------------------------
-
-### Winning Move
-
-    b (B) move [H r c | V r c | avail | edges | rules | q]: V 0 0
-
-    .---.
-    |   |
-    .---.
-
-    Score: a=0, b=1
-    Winner: b
-
+  Shy - 2
+  Ro - 2
+```
 ------------------------------------------------------------------------
 
 ## Example Commands
