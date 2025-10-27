@@ -1,4 +1,4 @@
-# Assignment 2 --- Quoridor
+# Assignment 3 --- Quoridor
 
 ## 👤 Student Information
 
@@ -125,14 +125,14 @@ src/
 
 ### Game Selection
 
----
+```
 Select a game:
 1) Sliding Puzzle
 2) Dots and Boxes
 3) Quoridor
 4) Quit
 Choice:
----
+```
 
 ------------------------------------------------------------------------
 
