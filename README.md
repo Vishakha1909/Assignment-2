@@ -24,8 +24,9 @@ java app.Main
 
 ## 📁 File Information
 
-### Directory Structure
+## 📁 Directory Structure
 
+```bash
 src/
 ├── app/
 │   ├── Main.java
@@ -43,6 +44,7 @@ src/
 │   ├── sliding/
 │   ├── dots/
 │   └── quoridor/
+
 
 
 ### 🎮 Core Framework
