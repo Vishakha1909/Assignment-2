@@ -24,6 +24,27 @@ java app.Main
 
 ## 📁 File Information
 
+### Directory Structure
+
+src/
+├── app/
+│   ├── Main.java
+│   └── ConsoleIO.java
+├── game/core/
+│   ├── Game.java
+│   ├── GameFactory.java
+│   ├── GameRegistry.java
+│   ├── Player.java
+│   ├── TurnAgent.java
+│   ├── Position.java
+│   ├── Tile.java
+│   └── Piece.java
+├── puzzles/
+│   ├── sliding/
+│   ├── dots/
+│   └── quoridor/
+
+
 ### 🎮 Core Framework
 
   -----------------------------------------------------------------------

@@ -20,7 +20,7 @@ final class QuoridorRulesText {
             .append("\nWalls:\n")
             .append("  - Cannot overlap or cross other walls.\n")
             .append("  - Must not block ALL paths to the goal for either player.\n")
-            .append("  - Each player has a limited number of walls (≈ min(rows,cols)+1).\n")
+            .append("  - Each player has a limited number of walls (~ min(rows,cols)+1).\n")
             .append("\nWin:\n")
             .append("  - P1 wins by reaching the last row.\n")
             .append("  - P2 wins by reaching the first row.\n")
