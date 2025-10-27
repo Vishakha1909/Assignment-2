@@ -1,4 +1,4 @@
-# Assignment 2 --- Sliding Puzzle & Dots and Boxes
+# Assignment 2 --- Quoridor
 
 ## 👤 Student Information
 
@@ -104,6 +104,20 @@ java app.Main
                             would complete a box.
   ---------------------------------------------------------------------------
 ------------------------------------------------------------------------
+
+| File                      | Description                                                                                                            |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **QuoridorGame**          | Game controller with menu, input loop, and score display.                                                              |
+| **QuoridorFactory**       | Registers and builds the Quoridor instance.                                                                            |
+| **QuoridorState**         | Represents the game board (pawns, walls, turns, and stats).                                                            |
+| **QuoridorRules**         | Handles all move legality (steps, jumps, diagonal side-steps) and wall placement validation using BFS for path safety. |
+| **QuoridorRenderer**      | Displays the board as a fully boxed grid (`+---+ / │ │`) with ANSI color highlights for walls and pawns.               |
+| **QuoridorAction**        | Encapsulates an action (`MOVE`, `WALL_H`, `WALL_V`).                                                                   |
+| **QuoridorHuman**         | Human input parser for move and wall commands.                                                                         |
+| **QuoridorStats**         | Tracks moves, walls, jumps, and win statistics.                                                                        |
+| **QuoridorRulesText**     | In-game rules description used in the “Rules” menu.                                                                    |
+| **PawnPiece / WallPiece** | Piece implementations for pawn and wall visualization.                                                                 |
+
 
 ## 💡 Example I/O
 
