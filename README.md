@@ -125,16 +125,20 @@ src/
 
 ### Game Selection
 
-    Select a game:
-    1) Sliding Puzzle
-    2) Dots & Boxes
-    3) Quit
-    Choice: 2
+---
+Select a game:
+1) Sliding Puzzle
+2) Dots and Boxes
+3) Quoridor
+4) Quit
+Choice:
+---
 
 ------------------------------------------------------------------------
 
-### Dots & Boxes Menu
+### Quoridor Menu
 
+```
     === Quoridor ===
 1) Play
 2) Rules
@@ -144,7 +148,7 @@ Choice: 1
 Enter board size (rows cols, default 9 9): 9 9
 Player 1 name [A]: Shy
 Player 2 name [B]: Ro
-
+```
 
 ------------------------------------------------------------------------
 
@@ -202,6 +206,7 @@ Wins:
 
 ### Design Principles
 
+```
 MVC-like layering: separation of model, view, and controller responsibilities.
 
 Immutability: all states are cloned before mutation for safety and undo potential.
@@ -211,11 +216,13 @@ Generics: consistent Rules<S, A> and Renderer<S> interfaces for all games.
 Reusability: shared use of ConsoleIO and GameRegistry.
 
 Player abstraction: uniform handling of names, turns, and score tracking.
+```
 
-----------------------------------------------------------------
+----
 
 ### Enhancements & Features
 
+```
 Full ANSI color and box-drawn grids.
 
 Jump + diagonal movement identical to official Quoridor rules.
@@ -227,10 +234,13 @@ Unified stats and high-score menus for all games.
 Difficulty selector for Sliding Puzzle.
 
 avail and edges commands for Dots & Boxes.
+```
 
----------------------------------------------------------------
+-----
 
 ### Future Improvements
+
+```
 
 AI agents via TurnAgent.
 
@@ -241,5 +251,7 @@ Persistent score saving (e.g., CSV).
 4-player Quoridor variant.
 
 Visual replay mode for completed matches.
+
+```
 
 ----------------------------------------------
