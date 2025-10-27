@@ -77,32 +77,17 @@ src/
 
 ### 🧩 Sliding Puzzle Module
 
-  ------------------------------------------------------------------------
-  File                   Description
-  ---------------------- -------------------------------------------------
-  **SlidingGame**        Game controller for the sliding puzzle ---
-                         handles moves, shuffling, and completion checks.
+| File                              | Description                                                |
+| --------------------------------- | ---------------------------------------------------------- |
+| **SlidingGame**                   | Main controller managing moves, shuffling, and win checks. |
+| **SlidingFactory**                | Builds the game with its rules and renderer.               |
+| **SlidingState**                  | Stores the board tiles and blank space position.           |
+| **SlidingRules**                  | Defines legal moves and solvability logic.                 |
+| **SlidingRenderer**               | Displays the puzzle grid in ASCII format.                  |
+| **GoalStrategy / StandardGoal**   | Defines the “solved” configuration.                        |
+| **Shuffler / RandomMoveShuffler** | Shuffles by legal blank moves to ensure solvability.       |
+| **SessionBest**                   | Tracks fewest moves per session for high scores.           |
 
-  **SlidingFactory**     Builds and wires the sliding puzzle with its
-                         rules, renderer, and state.
-
-  **SlidingState**       Stores current tile layout and blank position.
-
-  **SlidingRules**       Defines valid-move logic and solvability checks.
-
-  **SlidingRenderer**    Renders the puzzle grid in plain text.
-
-  **GoalStrategy /       Define what the solved configuration looks like.
-  StandardGoal**         
-
-  **SolvabilityPolicy /  Ensure the puzzle is solvable before play.
-  SolverUtils**          
-
-  **Shuffler /           Shuffle the board using random valid moves.
-  RandomMoveShuffler**   
-
-  **SessionBest**        Tracks best scores (fewest moves) per session.
-  ------------------------------------------------------------------------
 
 ### Dots & Boxes Module
 
