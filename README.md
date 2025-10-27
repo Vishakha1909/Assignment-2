@@ -228,44 +228,44 @@ Wins:
 
 ### Design Principles
 
-- MVC-like layering: separation of model, view, and controller responsibilities.
+MVC-like layering: separation of model, view, and controller responsibilities.
 
-- Immutability: all states are cloned before mutation for safety and undo potential.
+Immutability: all states are cloned before mutation for safety and undo potential.
 
-- Generics: consistent Rules<S, A> and Renderer<S> interfaces for all games.
+Generics: consistent Rules<S, A> and Renderer<S> interfaces for all games.
 
-- Reusability: shared use of ConsoleIO and GameRegistry.
+Reusability: shared use of ConsoleIO and GameRegistry.
 
-- Player abstraction: uniform handling of names, turns, and score tracking.
+Player abstraction: uniform handling of names, turns, and score tracking.
 
 ----------------------------------------------------------------
 
 ### Enhancements & Features
 
-- Full ANSI color and box-drawn grids.
+Full ANSI color and box-drawn grids.
 
-- Jump + diagonal movement identical to official Quoridor rules.
+Jump + diagonal movement identical to official Quoridor rules.
 
-- BFS validation for legal wall placements.
+BFS validation for legal wall placements.
 
-- Unified stats and high-score menus for all games.
+Unified stats and high-score menus for all games.
 
-- Difficulty selector for Sliding Puzzle.
+Difficulty selector for Sliding Puzzle.
 
-- avail and edges commands for Dots & Boxes.
+avail and edges commands for Dots & Boxes.
 
 ---------------------------------------------------------------
 
 ### Future Improvements
 
-- AI agents via TurnAgent.
+AI agents via TurnAgent.
 
-- Undo / Replay for Quoridor.
+Undo / Replay for Quoridor.
 
-- Persistent score saving (e.g., CSV).
+Persistent score saving (e.g., CSV).
 
-- 4-player Quoridor variant.
+4-player Quoridor variant.
 
-- Visual replay mode for completed matches.
+Visual replay mode for completed matches.
 
 ----------------------------------------------
